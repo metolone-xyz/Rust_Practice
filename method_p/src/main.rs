@@ -1,3 +1,5 @@
+use std::ops::Mul;
+
 /*
  *メソッド記法
  */
@@ -21,9 +23,15 @@ impl  Rectangle {
     
 }
 
-impl<T> Point<T>{
-    fn sum(&self) -> &T {
-        &self.x
+/*
+ * ジェネリックな型は演算子*をサポートしていない
+ * where T: Mul<Output = T> は 型T が 演算子をサポートするように要求している（この場合はstd::ops::Mul）
+ * Output = T は演算子の結果の方を指定するもの これにより * で生成される値の型が Tであることが保証される
+ * whereは関数やメソッドなどにシグネチャを付与するもので、ジェネリックな型やトレイとなどの条件を指定するために使用
+ * Copyトレイとを実装していない型を含む可能性もあるためトレイと境界にCopyを追加*/
+impl<T> Point<T> where T: Mul<T, Output = T> + Copy{
+    fn sum(&self) -> T {
+        self.x * self.y
     }
 }
 fn main() {
