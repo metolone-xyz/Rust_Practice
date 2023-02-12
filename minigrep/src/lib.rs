@@ -3,6 +3,7 @@ use std::error::Error;
 //コマンドライン引数の値を読み取れるようにする
 use std::fs::File; //ファイルを扱えるようにする
 use std::io::prelude::*;
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -40,13 +41,10 @@ Trust me.";
 //返す参照がどちらを参照すればいいかわからないからライフタイム注釈が必要
 //今回serch関数から返される値はcontents引数に渡されるデータと同期間生きる
 pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
-    let mut results = Vec::new();
-    for line in contents.lines() {
-        if line.contains(query) {
-            results.push(line);
-        }
-    }
-    results
+    contents
+        .lines()
+        .filter(|line| line.contains(query))
+        .collect()
 }
 pub fn serch_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
     let query = query.to_lowercase(); //小文字化
@@ -76,14 +74,26 @@ pub struct Config {
 *is_err ・・・CASE_INSENSITIVEに環境変数がセットされていればis_errはfalseを返し,大文字と小文字を区別しないで検索
  */
 impl Config {
-    pub fn new(args: &[String]) -> Result<Config, &'static str> {
-        if args.len() < 3 {
-            return Err("引数の数が足りません");
-        }
+    pub fn new(mut args: std::env::Args) -> Result<Config, &'static str> {
+        //env::argsの戻り値の1番目はプログラム名
+        args.next();
+
+        //queryフィールドに置きたい値を得る
+        let query = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a query string"),
+        };
+
+        //filenameフィールドに置きたい値を得る
+        let filename = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a filename"),
+        };
+
         let input_case = env::var("CaseInput").is_err();
         Ok(Config {
-            query: args[1].clone(),
-            filename: args[2].clone(),
+            query,
+            filename,
             case_sensitive: input_case,
         })
     }

@@ -7,6 +7,7 @@ use std::process;
 
 use minigrep::run;
 use minigrep::Config;
+
 fn main() {
     /*
      * コマンドラインから引数を受け取る
@@ -20,7 +21,7 @@ fn main() {
      * unwrap_or_else ・・・panic!ではない独自のエラー処理を定義できる
      *|err| クロージャ 今回は 引数の文字列が足りませんというErrの中身がここに:渡される
      */
-    let config = Config::new(&args).unwrap_or_else(|err| {
+    let config = Config::new(env::args()).unwrap_or_else(|err| {
         eprintln!("Problem parsing arguments: {}", err);
         process::exit(1);
     });
